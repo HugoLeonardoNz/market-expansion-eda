@@ -15,6 +15,14 @@ PNAD Contínua + choroplethas interativos por estado. Onde estão os domicílios
 
 ---
 
+![IDH x penetração de internet por UF](docs/img/idh_x_internet.png)
+
+*IDH estadual contra percentual de domicílios com internet (r = 0,88). Bolha proporcional à
+população; estrelas marcam os estados que ficam mais abaixo da linha de tendência do que o
+IDH deles explicaria — Amazonas 7,0pp e Rondônia 5,2pp.*
+
+---
+
 ## O Problema de Negócio
 
 Para um ISP decidindo onde expandir infraestrutura, a pergunta crítica é: **quais regiões combinam alta densidade populacional com baixa penetração de internet?** Este projeto responde essa pergunta cruzando dados de acesso à internet (PNAD Contínua) com indicadores demográficos e socioeconômicos do IBGE, entregando um mapa de oportunidades de mercado.
