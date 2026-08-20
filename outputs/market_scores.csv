@@ -1,28 +1,28 @@
-﻿sigla,nome,regiao,pct_total,pct_urbano,pct_rural,gap_digital,idh,pop_mil,dom_sem_k,score_100
-SP,São Paulo,Sudeste,93.5,98.5,73.5,25.0,0.783,46649,978,100.0
-MG,Minas Gerais,Sudeste,88.7,93.7,68.7,25.0,0.731,21412,781,66.9
-BA,Bahia,Nordeste,80.3,85.3,60.3,25.0,0.66,14931,949,61.4
-RJ,Rio de Janeiro,Sudeste,91.3,96.3,71.3,25.0,0.761,17463,490,45.4
-CE,Ceará,Nordeste,78.9,83.9,58.900000000000006,25.0,0.682,9241,629,44.0
-PE,Pernambuco,Nordeste,82.4,87.4,62.400000000000006,25.0,0.673,9675,549,36.5
-PA,Pará,Norte,77.8,82.8,57.8,25.0,0.646,8604,616,36.2
-MA,Maranhão,Nordeste,73.8,78.8,53.8,25.0,0.639,7153,605,34.2
-PR,Paraná,Sul,91.6,96.6,71.6,25.0,0.749,11597,314,27.0
-RS,Rio Grande do Sul,Sul,92.8,97.8,72.8,25.0,0.746,11467,266,22.2
-AM,Amazonas,Norte,77.6,82.6,57.599999999999994,25.0,0.708,4145,300,21.8
-GO,Goiás,Centro-Oeste,90.0,95.0,70.0,25.0,0.735,7267,234,18.4
-PB,Paraíba,Nordeste,80.5,85.5,60.5,25.0,0.658,4060,255,14.3
-SC,Santa Catarina,Sul,93.8,98.8,73.8,25.0,0.774,7610,152,12.8
-RN,Rio Grande do Norte,Nordeste,83.6,88.6,63.599999999999994,25.0,0.684,3561,188,11.3
-PI,Piauí,Nordeste,79.3,84.3,59.3,25.0,0.646,3289,220,11.1
-AL,Alagoas,Nordeste,78.4,83.4,58.400000000000006,25.0,0.631,3352,234,10.9
-ES,Espírito Santo,Sudeste,89.5,94.5,69.5,25.0,0.74,4109,139,10.0
-MT,Mato Grosso,Centro-Oeste,88.2,93.2,68.2,25.0,0.725,3784,144,9.8
-SE,Sergipe,Nordeste,82.8,87.8,62.8,25.0,0.665,2338,130,6.1
-MS,Mato Grosso do Sul,Centro-Oeste,89.4,94.4,69.4,25.0,0.729,2833,97,5.8
-RO,Rondônia,Norte,82.4,87.4,62.400000000000006,25.0,0.736,1581,90,5.3
-TO,Tocantins,Norte,82.1,87.1,62.099999999999994,25.0,0.699,1590,92,4.5
-DF,Distrito Federal,Centro-Oeste,95.1,100.1,75.1,25.0,0.824,3094,49,3.0
-AC,Acre,Norte,81.2,86.2,61.2,25.0,0.708,830,50,1.3
-AP,Amapá,Norte,82.5,87.5,62.5,25.0,0.708,846,48,1.1
-RR,Roraima,Norte,85.6,90.6,65.6,25.0,0.75,637,30,0.0
+﻿sigla,nome,regiao,pct_total,idh,pop_mil,pct_sem_internet,domicilios_sem_internet_k,idh_norm,score_oportunidade,score_normalizado,categoria,risco_capacidade_pagamento,mercado_saturado,estrategia_recomendada
+SP,São Paulo,Sudeste,95.0,0.783,46649,5.0,852,0.7875647668393786,2.085,100.0,Muito Alta,False,True,Upgrade premium / retenção
+MG,Minas Gerais,Sudeste,92.8,0.731,21412,7.2,564,0.5181347150259068,1.17,55.5,Alta,False,True,Upgrade premium / retenção
+BA,Bahia,Nordeste,89.2,0.66,14931,10.8,589,0.15025906735751313,0.927,43.6,Alta,False,False,Fibra FTTC + subsídio governo
+RJ,Rio de Janeiro,Sudeste,94.1,0.761,17463,5.9,390,0.6735751295336789,0.862,40.5,Alta,False,True,Upgrade premium / retenção
+PR,Paraná,Sul,92.8,0.749,11597,7.2,314,0.6113989637305701,0.673,31.3,Moderada,False,True,Upgrade premium / retenção
+PE,Pernambuco,Nordeste,88.9,0.673,9675,11.1,388,0.21761658031088107,0.654,30.3,Moderada,False,False,Fibra FTTC + subsídio governo
+RS,Rio Grande do Sul,Sul,93.2,0.746,11467,6.8,296,0.5958549222797929,0.622,28.8,Moderada,False,True,Upgrade premium / retenção
+CE,Ceará,Nordeste,89.5,0.682,9241,10.5,340,0.26424870466321276,0.613,28.3,Moderada,False,False,Fibra FTTC + subsídio governo
+MA,Maranhão,Nordeste,86.8,0.639,7153,13.2,297,0.04145077720207259,0.492,22.4,Moderada,True,False,Fibra FTTC + subsídio governo
+PA,Pará,Norte,90.1,0.646,8604,9.9,262,0.0777202072538861,0.459,20.8,Moderada,True,True,Upgrade premium / retenção
+AM,Amazonas,Norte,88.7,0.708,4145,11.3,136,0.39896373056994805,0.328,14.5,Baixa,False,False,Fibra FTTC + subsídio governo
+SC,Santa Catarina,Sul,95.4,0.774,7610,4.6,135,0.7409326424870469,0.305,13.3,Baixa,False,True,Upgrade premium / retenção
+GO,Goiás,Centro-Oeste,95.2,0.735,7267,4.8,131,0.538860103626943,0.268,11.5,Baixa,False,True,Upgrade premium / retenção
+ES,Espírito Santo,Sudeste,92.7,0.74,4109,7.3,109,0.5647668393782385,0.235,9.9,Baixa,False,True,Upgrade premium / retenção
+PB,Paraíba,Nordeste,90.2,0.658,4060,9.8,146,0.13989637305699498,0.227,9.5,Baixa,False,True,Upgrade premium / retenção
+RN,Rio Grande do Norte,Nordeste,90.3,0.684,3561,9.7,119,0.2746113989637309,0.22,9.2,Baixa,False,True,Upgrade premium / retenção
+PI,Piauí,Nordeste,89.1,0.646,3289,10.9,125,0.0777202072538861,0.193,7.9,Baixa,True,False,Fibra FTTC + subsídio governo
+AL,Alagoas,Nordeste,89.4,0.631,3352,10.6,117,0.0,0.178,7.2,Baixa,True,False,Fibra FTTC + subsídio governo
+MT,Mato Grosso,Centro-Oeste,94.2,0.725,3784,5.8,76,0.48704663212435234,0.163,6.4,Baixa,False,True,Upgrade premium / retenção
+SE,Sergipe,Nordeste,91.4,0.665,2338,8.6,71,0.1761658031088085,0.118,4.2,Baixa,False,True,Upgrade premium / retenção
+MS,Mato Grosso do Sul,Centro-Oeste,95.5,0.729,2833,4.5,47,0.5077720207253886,0.096,3.2,Baixa,False,True,Upgrade premium / retenção
+AC,Acre,Norte,84.4,0.708,830,15.6,43,0.39896373056994805,0.091,2.9,Baixa,False,False,Fibra FTTC + subsídio governo
+TO,Tocantins,Norte,91.7,0.699,1590,8.3,45,0.3523316062176164,0.089,2.8,Baixa,False,True,Upgrade premium / retenção
+DF,Distrito Federal,Centro-Oeste,97.4,0.824,3094,2.6,28,1.0,0.08,2.4,Baixa,False,True,Upgrade premium / retenção
+RO,Rondônia,Norte,94.0,0.736,1581,6.0,40,0.5440414507772021,0.073,2.0,Baixa,False,True,Upgrade premium / retenção
+AP,Amapá,Norte,94.0,0.708,846,6.0,14,0.39896373056994805,0.036,0.2,Baixa,False,True,Upgrade premium / retenção
+RR,Roraima,Norte,94.0,0.75,637,6.0,11,0.6165803108808291,0.031,0.0,Baixa,False,True,Upgrade premium / retenção

@@ -9,7 +9,7 @@ Uso:
 Saídas:
     outputs/figures/choropleth_internet_brasil.html
     outputs/figures/penetracao_por_regiao.html
-    outputs/figures/gap_urbano_rural.html
+    outputs/figures/taxa_x_volume.html
     outputs/figures/correlacao_idh_internet.html
     outputs/figures/score_oportunidade.html
     outputs/figures/tendencia_2019_2023.html   (se API disponível)
@@ -21,10 +21,15 @@ import json
 import warnings
 from pathlib import Path
 
+import sys
+
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from theme import SEQ, finish, save  # noqa: E402
 from plotly.subplots import make_subplots
 
 try:
@@ -72,21 +77,66 @@ REGIAO = {
     "MS":"Centro-Oeste","MT":"Centro-Oeste","GO":"Centro-Oeste","DF":"Centro-Oeste",
 }
 
-PCT_TOTAL = {
-    "RO":82.4,"AC":81.2,"AM":77.6,"RR":85.6,"PA":77.8,"AP":82.5,"TO":82.1,
-    "MA":73.8,"PI":79.3,"CE":78.9,"RN":83.6,"PB":80.5,"PE":82.4,"AL":78.4,
-    "SE":82.8,"BA":80.3,"MG":88.7,"ES":89.5,"RJ":91.3,"SP":93.5,
-    "PR":91.6,"SC":93.8,"RS":92.8,"MS":89.4,"MT":88.2,"GO":90.0,"DF":95.1,
-}
-PCT_URBANO = {k: v + 5 for k, v in PCT_TOTAL.items()}
-PCT_RURAL  = {k: v - 20 for k, v in PCT_TOTAL.items()}
+# ── Dado observado, direto da API do IBGE ────────────────────────────────────
+# Antes havia aqui um dicionário PCT_TOTAL com 27 percentuais escritos à mão sob
+# o comentário "(IBGE PNAD Contínua 2023)". Eles não vinham do PNAD: o Brasil
+# saía em 87,0% quando o IBGE publicou 92,5%, e o erro era MAIOR nos estados
+# pobres (Maranhão 13,0pp abaixo do real; São Paulo, 1,5). Como este projeto
+# entrega um RANKING de prioridade de expansão, um erro correlacionado com a
+# renda do estado não é ruído — é viés na única saída que importa.
+#
+# `sidra.py` documenta as tabelas e o método. Sem API e sem cache, ele levanta
+# SidraIndisponivel e este script para: melhor não rodar do que rodar inventando.
+from sidra import carregar as _carregar_sidra   # noqa: E402
 
+ANO_REF = 2023
+
+
+def _dados_ibge(ano: int = ANO_REF) -> dict:
+    """{sigla_uf: {"pct": float, "dom_sem_k": int, "dom_total_k": int}}"""
+    por_codigo = {
+        l["codigo_ibge"]: l
+        for l in _carregar_sidra()
+        if l["nivel"] == "N3" and l["situacao"] == "Total" and l["ano"] == ano
+    }
+    out = {}
+    for codigo, (sigla, _nome) in UF_REF.items():
+        linha = por_codigo.get(codigo)
+        if not linha:
+            continue
+        out[sigla] = {
+            "pct":         linha["pct"],
+            "dom_total_k": int(round(linha["total"])),
+            # Domicílios sem internet OBSERVADOS (total - com internet). Antes
+            # eram estimados como `populacao / 3,1 moradores` — uma média
+            # nacional aplicada a 27 estados que têm tamanhos de domicílio
+            # diferentes, e justamente no Norte/Nordeste, onde o domicílio é
+            # maior, a conta subestimava o número de casas.
+            "dom_sem_k":   int(round(linha["total"] - linha["com_internet"])),
+        }
+    if len(out) != 27:
+        raise RuntimeError(f"esperava 27 UFs do SIDRA, vieram {len(out)}")
+    return out
+
+
+IBGE = _dados_ibge()
+PCT_TOTAL = {sigla: v["pct"] for sigla, v in IBGE.items()}
+
+# IDH estadual — PNUD/Atlas do Desenvolvimento Humano, Censo 2010.
+# Continua embutido, e de propósito: é um valor CENSITÁRIO, publicado uma vez a
+# cada dez anos. Não existe série anual para buscar, e uma constante que não muda
+# é honesta enquanto a fonte e o ano estiverem declarados — o problema do
+# PCT_TOTAL antigo nunca foi ser constante, foi ser um número que não batia com
+# a fonte que ele citava.
 IDH = {
     "RO":0.736,"AC":0.708,"AM":0.708,"RR":0.750,"PA":0.646,"AP":0.708,"TO":0.699,
     "MA":0.639,"PI":0.646,"CE":0.682,"RN":0.684,"PB":0.658,"PE":0.673,"AL":0.631,
     "SE":0.665,"BA":0.660,"MG":0.731,"ES":0.740,"RJ":0.761,"SP":0.783,
     "PR":0.749,"SC":0.774,"RS":0.746,"MS":0.729,"MT":0.725,"GO":0.735,"DF":0.824,
 }
+
+
+
 POP_MIL = {
     "RO":1581,"AC":830,"AM":4145,"RR":637,"PA":8604,"AP":846,"TO":1590,
     "MA":7153,"PI":3289,"CE":9241,"RN":3561,"PB":4060,"PE":9675,"AL":3352,
@@ -119,13 +169,16 @@ def build_df() -> pd.DataFrame:
         "nome":      [NOMES[u] for u in ufs],
         "regiao":    [REGIAO[u] for u in ufs],
         "pct_total": [PCT_TOTAL[u] for u in ufs],
-        "pct_urbano":[PCT_URBANO[u] for u in ufs],
-        "pct_rural": [PCT_RURAL[u] for u in ufs],
         "idh":       [IDH[u] for u in ufs],
         "pop_mil":   [POP_MIL[u] for u in ufs],
     })
-    df["gap_digital"] = (df["pct_urbano"] - df["pct_rural"]).round(1)
-    df["dom_sem_k"]   = ((1 - df["pct_total"] / 100) * df["pop_mil"] / 3.1).round(0).astype(int)
+    df["dom_sem_k"]   = [IBGE[u]["dom_sem_k"] for u in ufs]
+    df["dom_total_k"] = [IBGE[u]["dom_total_k"] for u in ufs]
+    # Os dois criterios de prioridade, lado a lado: 1 = pior taxa de acesso;
+    # 1 = maior numero absoluto de domicilios sem internet.
+    df["rank_taxa"]   = df["pct_total"].rank(method="min").astype(int)
+    df["rank_volume"] = df["dom_sem_k"].rank(method="min", ascending=False).astype(int)
+    df["dist_rank"]   = (df["rank_taxa"] - df["rank_volume"]).abs()
     idh_min, idh_max  = df["idh"].min(), df["idh"].max()
     df["idh_norm"]    = (df["idh"] - idh_min) / (idh_max - idh_min)
     df["score"]       = (
@@ -146,9 +199,7 @@ print(f"  27 estados | media penetracao: {df['pct_total'].mean():.1f}%")
 
 trend = pd.DataFrame(list(TENDENCIA_NACIONAL.items()), columns=["ano", "pct_media"])
 fig = px.line(trend, x="ano", y="pct_media", markers=True,
-              title="<b>Penetração Média de Internet no Brasil (2019–2023)</b>",
-              labels={"ano": "Ano", "pct_media": "% Domicílios com Internet"},
-              template="plotly_white")
+              labels={"ano": "Ano", "pct_media": "% Domicílios com Internet"})
 fig.update_traces(line_color="#2563EB", marker_size=8, marker_color="#2563EB",
                   text=trend["pct_media"].astype(str) + "%", textposition="top center",
                   mode="lines+markers+text")
@@ -156,8 +207,10 @@ fig.add_annotation(
     x=2023, y=87.0, text="+7.9pp em 5 anos", showarrow=True,
     arrowhead=2, ax=-60, ay=-30, font=dict(size=11, color="#2563EB")
 )
-fig.update_layout(height=380, yaxis=dict(range=[75, 95]))
-fig.write_html(str(OUTPUTS / "tendencia_2019_2023.html"), include_plotlyjs="cdn")
+fig.update_layout(yaxis=dict(range=[75, 95]))
+finish(fig, "Penetração de internet no Brasil",
+       "média nacional de domicílios com acesso, 2019–2023", height=420)
+save(fig, OUTPUTS, "tendencia_2019_2023")
 print("  OK tendencia_2019_2023.html")
 
 # --------------------------------------------------------------------------
@@ -187,62 +240,60 @@ fig = px.bar(
     error_y_minus=reg["media_pct"] - reg["min_pct"],
     color="regiao", color_discrete_map=COR_REG,
     text=reg["media_pct"].round(1).astype(str) + "%",
-    title="<b>H1: Penetração Média de Internet por Região</b><br><sup>Barras de erro: min/max estadual</sup>",
     labels={"media_pct": "Penetração média (%)", "regiao": "Região"},
-    template="plotly_white",
 )
 fig.update_traces(textposition="outside")
-fig.update_layout(height=440, coloraxis_showscale=False, showlegend=False,
+fig.update_layout(coloraxis_showscale=False, showlegend=False,
                   yaxis=dict(range=[60, 102]))
 fig.add_annotation(
     x=0.5, y=1.08, xref="paper", yref="paper",
     text=f"Gap Norte+NE vs Sul+SE: {gap_norte_sul:.1f} p.p.",
     showarrow=False, font=dict(size=12, color="#E74C3C"),
 )
-fig.write_html(str(OUTPUTS / "penetracao_por_regiao.html"), include_plotlyjs="cdn")
+finish(fig, "H1 · Penetração média por região",
+       f"barra de erro = mínimo e máximo estadual · gap Norte+NE contra Sul+SE: {gap_norte_sul:.1f}pp",
+       height=470)
+save(fig, OUTPUTS, "penetracao_por_regiao")
 print("  OK penetracao_por_regiao.html")
 
 # --------------------------------------------------------------------------
-# 3. Gap urbano × rural por estado (H2)
+# 3. Taxa x volume: os dois rankings discordam (H2)
 # --------------------------------------------------------------------------
 
-df_gap = df.sort_values("gap_digital", ascending=False)
-gap_medio = df["gap_digital"].mean()
-h2_ok = gap_medio > gap_norte_sul
-print(f"  H2: gap urbano/rural {gap_medio:.1f}pp > gap interregional {gap_norte_sul:.1f}pp ({'CONFIRMADA' if h2_ok else 'REFUTADA'})")
+# A hipotese antiga comparava um gap urbano x rural construido por deslocamento
+# fixo — nao podia ser refutada. Esta pode: se os dois criterios apontassem para
+# os mesmos estados, a correlacao de postos seria alta e a pergunta nao existiria.
+rho = df["rank_taxa"].corr(df["rank_volume"], method="spearman")
+top5_taxa   = set(df.nsmallest(5, "pct_total")["sigla"])
+top5_volume = set(df.nlargest(5, "dom_sem_k")["sigla"])
+coincidem   = len(top5_taxa & top5_volume)
+h2_ok = rho < 0.5
+print(f"  H2: rho de Spearman = {rho:.2f} | {coincidem} de 5 estados coincidem "
+      f"({'CONFIRMADA' if h2_ok else 'REFUTADA'})")
 
+df_rk = df.sort_values("dom_sem_k", ascending=False)
 fig = go.Figure()
-for _, row in df_gap.iterrows():
-    fig.add_trace(go.Scatter(
-        x=[row["pct_rural"], row["pct_urbano"]],
-        y=[row["sigla"], row["sigla"]],
-        mode="lines+markers",
-        line=dict(color="lightgrey", width=2),
-        marker=dict(size=8, color=["#EF4444", "#3B82F6"]),
-        showlegend=False,
-        hovertemplate=(
-            f"<b>{row['nome']}</b><br>"
-            f"Rural: {row['pct_rural']:.1f}%<br>"
-            f"Urbano: {row['pct_urbano']:.1f}%<br>"
-            f"Gap: {row['gap_digital']:.1f} p.p.<extra></extra>"
-        ),
-    ))
-fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers",
-                          marker=dict(color="#EF4444", size=10), name="Rural"))
-fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers",
-                          marker=dict(color="#3B82F6", size=10), name="Urbano"))
-fig.add_vline(x=gap_medio + df["pct_rural"].mean(), line_dash="dot",
-              line_color="#F39C12", annotation_text=f"Gap medio: {gap_medio:.1f}pp",
-              annotation_position="top right")
+fig.add_trace(go.Scatter(
+    x=df_rk["pct_total"], y=df_rk["dom_sem_k"],
+    mode="markers+text", text=df_rk["sigla"], textposition="top center",
+    marker=dict(size=df_rk["pop_mil"] / 3000 + 7,
+                color=[COR_REG[r] for r in df_rk["regiao"]], opacity=0.85),
+    showlegend=False,
+    hovertemplate=("<b>%{text}</b><br>Penetração: %{x:.1f}%<br>"
+                   "Domicílios sem internet: %{y:.0f} mil<extra></extra>"),
+))
+fig.add_vline(x=df["pct_total"].mean(), line_dash="dot", line_color="#94A3B8",
+              annotation_text="média nacional", annotation_position="bottom left")
 fig.update_layout(
-    title=f"<b>H2: Gap Urbano x Rural — penetração de internet por estado</b><br><sup>Gap médio: {gap_medio:.1f} p.p.</sup>",
-    xaxis_title="% domicílios com internet",
-    yaxis=dict(title="Estado", categoryorder="array",
-               categoryarray=df_gap["sigla"].tolist()[::-1]),
-    template="plotly_white", height=760,
+    xaxis_title="% de domicílios com internet",
+    yaxis_title="domicílios sem internet (mil)",
 )
-fig.write_html(str(OUTPUTS / "gap_urbano_rural.html"), include_plotlyjs="cdn")
-print("  OK gap_urbano_rural.html")
+finish(fig, "H2 · Taxa de acesso × volume desconectado",
+       f"ρ de Spearman entre os dois rankings: {rho:.2f} · "
+       f"apenas {coincidem} dos 5 piores em taxa estão entre os 5 maiores em volume",
+       height=560)
+save(fig, OUTPUTS, "taxa_x_volume", png=True)
+print("  OK taxa_x_volume.html")
 
 # --------------------------------------------------------------------------
 # 4. Correlação IDH × penetração (H3)
@@ -292,12 +343,14 @@ for _, row in outliers.iterrows():
         font=dict(size=10, color="#EF4444"), ax=40, ay=-40,
     )
 fig.update_layout(
-    title=f"<b>H3: IDH x Penetração de Internet — r={corr:.2f}</b><br><sup>Tamanho das bolhas proporcional à população</sup>",
-    xaxis_title="IDH Estadual (PNUD 2021)",
-    yaxis_title="% Domicílios com Internet",
-    template="plotly_white", height=540,
+    xaxis_title="IDH estadual (PNUD 2021)",
+    yaxis_title="% de domicílios com internet",
 )
-fig.write_html(str(OUTPUTS / "correlacao_idh_internet.html"), include_plotlyjs="cdn")
+finish(fig, f"H3 · IDH × penetração de internet — r = {corr:.2f}",
+       "cada ponto é um estado · tamanho proporcional à população · "
+       "estrela = mais de 1,5 desvio fora da reta",
+       height=580)
+save(fig, OUTPUTS, "correlacao_idh_internet", png=True)
 print("  OK correlacao_idh_internet.html")
 
 # --------------------------------------------------------------------------
@@ -313,17 +366,14 @@ fig = px.bar(
     x="score_100", y="sigla", orientation="h",
     color="regiao", color_discrete_map=COR_REG,
     text=df_opp.sort_values("score_100")["dom_sem_k"].astype(str) + "k dom.",
-    title="<b>Score de Oportunidade de Expansão para ISPs</b><br><sup>Excluindo estados com penetração > 90% (mercados saturados)</sup>",
     labels={"score_100": "Score (0-100)", "sigla": "Estado", "regiao": "Região"},
-    template="plotly_white",
 )
 fig.update_traces(textposition="inside")
-fig.update_layout(
-    yaxis={"categoryorder": "total ascending"},
-    height=500,
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-)
-fig.write_html(str(OUTPUTS / "score_oportunidade.html"), include_plotlyjs="cdn")
+fig.update_layout(yaxis={"categoryorder": "total ascending"})
+finish(fig, "Score de oportunidade de expansão",
+       "excluindo estados com penetração acima de 90% · o rótulo traz o mercado endereçável",
+       height=540)
+save(fig, OUTPUTS, "score_oportunidade", png=True)
 print("  OK score_oportunidade.html")
 
 # --------------------------------------------------------------------------
@@ -335,27 +385,80 @@ fig = px.bar(
     df_map, x="pct_total", y="sigla", orientation="h",
     color="regiao", color_discrete_map=COR_REG,
     text=df_map["pct_total"].round(1).astype(str) + "%",
-    title=f"<b>% Domicílios com Acesso à Internet por Estado — Brasil 2023</b>",
     labels={"pct_total": "% com internet", "sigla": "UF", "regiao": "Região"},
-    template="plotly_white",
 )
 fig.update_traces(textposition="outside")
 fig.add_vline(x=df["pct_total"].mean(), line_dash="dash", line_color="grey",
               annotation_text=f"Media: {df['pct_total'].mean():.1f}%",
               annotation_position="top right")
-fig.update_layout(
-    height=740,
-    legend=dict(orientation="h", yanchor="bottom", y=1.01, xanchor="right", x=1),
-)
-fig.write_html(str(OUTPUTS / "choropleth_internet_brasil.html"), include_plotlyjs="cdn")
+finish(fig, "Acesso à internet por estado — Brasil, 2023",
+       "cor por região · linha tracejada na média nacional", height=780)
+save(fig, OUTPUTS, "choropleth_internet_brasil")
+
+# ---------------------------------------------------------------------------
+# Gap urbano x rural por regiao — o achado central
+# ---------------------------------------------------------------------------
+# Dumbbell e nao barra empilhada: o que interessa aqui e a DISTANCIA entre dois
+# pontos, e barra empilhada some com ela. Ordenado pelo gap, nao pelo alfabeto.
+
+_sit = [l for l in _carregar_sidra()
+        if l["ano"] == ANO_REF and l["nivel"] in ("N1", "N2")]
+_REG = {("N1", "1"): "Brasil", ("N2", "1"): "Norte", ("N2", "2"): "Nordeste",
+        ("N2", "3"): "Sudeste", ("N2", "4"): "Sul", ("N2", "5"): "Centro-Oeste"}
+_por_local = {}
+for l in _sit:
+    nome = _REG.get((l["nivel"], l["codigo_ibge"]))
+    if nome:
+        _por_local.setdefault(nome, {})[l["situacao"]] = l["pct"]
+
+gap_rows = sorted(
+    [(n, v["Urbana"], v["Rural"], v["Urbana"] - v["Rural"])
+     for n, v in _por_local.items() if "Urbana" in v and "Rural" in v],
+    key=lambda r: r[3])
+
+fig = go.Figure()
+for nome, urb, rur, gap in gap_rows:
+    destaque = nome in ("Norte", "Brasil")
+    fig.add_trace(go.Scatter(
+        x=[rur, urb], y=[nome, nome], mode="lines",
+        line=dict(color="#c94f2e" if nome == "Norte" else "#b8b0a4",
+                  width=6 if destaque else 4),
+        showlegend=False, hoverinfo="skip"))
+    fig.add_trace(go.Scatter(
+        x=[rur, urb], y=[nome, nome], mode="markers+text",
+        marker=dict(size=[13, 13], color=["#c94f2e", "#2e6f7d"]),
+        text=[f"{rur:.1f}%", f"{urb:.1f}%"],
+        textposition=["middle left", "middle right"],
+        textfont=dict(size=11), showlegend=False,
+        hovertemplate="%{y}<br>%{x:.1f}%<extra></extra>"))
+    fig.add_annotation(x=(urb + rur) / 2, y=nome, text=f"<b>{gap:.1f}pp</b>",
+                       showarrow=False, yshift=15, font=dict(size=11))
+
+fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", name="Rural",
+                         marker=dict(size=12, color="#c94f2e")))
+fig.add_trace(go.Scatter(x=[None], y=[None], mode="markers", name="Urbana",
+                         marker=dict(size=12, color="#2e6f7d")))
+
+finish(fig,
+       "Onde mora a exclusão digital: no campo, não na região",
+       f"% de domicílios com internet, {ANO_REF} · IBGE PNAD Contínua "
+       f"(tabelas 9649 e 7167) · o rótulo no meio é a distância entre os dois pontos",
+       height=400)
+fig.update_xaxes(title="% de domicílios com internet", range=[65, 100], ticksuffix="%")
+fig.update_layout(showlegend=True)
+save(fig, OUTPUTS, "gap_urbano_rural", png=True, width=1400)
+print("  OK gap_urbano_rural.html")
+print(f"  Gap Brasil: {_por_local['Brasil']['Urbana'] - _por_local['Brasil']['Rural']:.1f}pp"
+      f" | Norte: {_por_local['Norte']['Urbana'] - _por_local['Norte']['Rural']:.1f}pp")
+
 print("  OK choropleth_internet_brasil.html")
 
 # --------------------------------------------------------------------------
 # Exporta CSVs
 # --------------------------------------------------------------------------
 
-df_score[["sigla","nome","regiao","pct_total","pct_urbano","pct_rural","gap_digital",
-          "idh","pop_mil","dom_sem_k","score_100"]].to_csv(
+df_score[["sigla","nome","regiao","pct_total","idh","pop_mil","dom_sem_k",
+          "rank_taxa","rank_volume","dist_rank","score_100"]].to_csv(
     ROOT / "outputs" / "market_scores.csv", index=False, encoding="utf-8-sig"
 )
 top5 = df_score[df_score["pct_total"] < 90].head(5)
@@ -373,7 +476,7 @@ print("\n" + "=" * 60)
 print("RESUMO DAS HIPOTESES")
 print("=" * 60)
 print(f"  H1: {'CONFIRMADA' if h1_ok else 'REFUTADA':10s} Gap Norte+NE vs Sul+SE = {gap_norte_sul:.1f}pp")
-print(f"  H2: {'CONFIRMADA' if h2_ok else 'REFUTADA':10s} Gap urbano/rural {gap_medio:.1f}pp > gap interregional {gap_norte_sul:.1f}pp")
+print(f"  H2: {'CONFIRMADA' if h2_ok else 'REFUTADA':10s} Taxa x volume: rho = {rho:.2f}, {coincidem}/5 coincidem")
 print(f"  H3: {'CONFIRMADA' if h3_ok else 'REFUTADA':10s} Correlacao IDH x internet r = {corr:.3f}")
 
 print("\nTop 5 Estados Recomendados para Expansao:")

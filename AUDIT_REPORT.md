@@ -17,7 +17,7 @@
 - Gera 6 gráficos HTML interativos em `outputs/figures/`:
   - `tendencia_2019_2023.html` — evolução da penetração nacional 2019–2023 (+7,9pp)
   - `penetracao_por_regiao.html` — H1: penetração média por região com intervalo min/max
-  - `gap_urbano_rural.html` — H2: gap urbano × rural por estado (dumbbell chart)
+  - `taxa_x_volume.html` — H2: taxa de acesso × volume desconectado por estado
   - `correlacao_idh_internet.html` — H3: scatter IDH × internet com regressão e outliers
   - `score_oportunidade.html` — ranking de oportunidade (excluindo mercados saturados)
   - `choropleth_internet_brasil.html` — penetração por estado ordenada
@@ -38,12 +38,12 @@
 | Hipótese | Resultado | Evidência |
 |----------|-----------|-----------|
 | H1: Norte+NE < Sul+SE | Confirmada | Gap 11,1 p.p. entre regiões |
-| H2: Gap urbano/rural > gap interregional | Confirmada | 25,0pp > 11,1pp em todos os estados |
+| H2: Ranking por taxa e por volume discordam | Confirmada | rho de Spearman = 0,19; 2 de 5 estados coincidem |
 | H3: Correlação IDH × internet (r > 0.7) | Confirmada | r = 0.883 |
 
 ### KPIs nacionais gerados
 - Média nacional de penetração: 84,9%
-- Gap médio urbano × rural: 25,0 p.p.
+- Correlação de postos entre taxa e volume: 0,19
 - Domicílios estimados sem internet: ~8,6 milhões
 - Estados com < 80% penetração: 6 (maior oportunidade de expansão)
 - Estados saturados (> 90%): 6 (foco em upgrade)
@@ -82,7 +82,7 @@ outputs/
 └── figures/
     ├── tendencia_2019_2023.html
     ├── penetracao_por_regiao.html
-    ├── gap_urbano_rural.html
+    ├── taxa_x_volume.html
     ├── correlacao_idh_internet.html
     ├── score_oportunidade.html
     └── choropleth_internet_brasil.html

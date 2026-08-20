@@ -25,17 +25,40 @@ OUTPUTS.mkdir(parents=True, exist_ok=True)
 # --------------------------------------------------------------------------
 
 # % domicílios com acesso à internet por UF
-PCT_INTERNET_2023 = {
-    "RO": 82.4, "AC": 81.2, "AM": 77.6, "RR": 85.6, "PA": 77.8,
-    "AP": 82.5, "TO": 82.1, "MA": 73.8, "PI": 79.3, "CE": 78.9,
-    "RN": 83.6, "PB": 80.5, "PE": 82.4, "AL": 78.4, "SE": 82.8,
-    "BA": 80.3, "MG": 88.7, "ES": 89.5, "RJ": 91.3, "SP": 93.5,
-    "PR": 91.6, "SC": 93.8, "RS": 92.8, "MS": 89.4, "MT": 88.2,
-    "GO": 90.0, "DF": 95.1,
+# Penetração e contagem de domicílios: OBSERVADOS, via API do SIDRA.
+#
+# Aqui existia a QUARTA cópia da mesma tabela escrita à mão — as outras estavam
+# em run_analysis.py, no prepare_data.py do projeto de Power BI e no analises.ts
+# do site. Copiadas, já tinham divergido entre si (ES saía 89,5 num arquivo e
+# 89,4 noutro) e nenhuma delas batia com o PNAD. Agora há uma fonte só.
+from sidra import carregar as _carregar_sidra   # noqa: E402
+
+ANO_REF = 2023
+
+_UF_POR_CODIGO = {
+    "11": "RO", "12": "AC", "13": "AM", "14": "RR", "15": "PA", "16": "AP",
+    "17": "TO", "21": "MA", "22": "PI", "23": "CE", "24": "RN", "25": "PB",
+    "26": "PE", "27": "AL", "28": "SE", "29": "BA", "31": "MG", "32": "ES",
+    "33": "RJ", "35": "SP", "41": "PR", "42": "SC", "43": "RS", "50": "MS",
+    "51": "MT", "52": "GO", "53": "DF",
 }
 
-PCT_URBANO_2023 = {k: v + 5 for k, v in PCT_INTERNET_2023.items()}
-PCT_RURAL_2023  = {k: v - 20 for k, v in PCT_INTERNET_2023.items()}
+_IBGE = {
+    _UF_POR_CODIGO[l["codigo_ibge"]]: l
+    for l in _carregar_sidra()
+    if l["nivel"] == "N3" and l["situacao"] == "Total" and l["ano"] == ANO_REF
+    and l["codigo_ibge"] in _UF_POR_CODIGO
+}
+assert len(_IBGE) == 27, f"esperava 27 UFs, vieram {len(_IBGE)}"
+
+PCT_INTERNET_2023 = {uf: l["pct"] for uf, l in _IBGE.items()}
+DOM_SEM_INTERNET_K = {uf: int(round(l["total"] - l["com_internet"]))
+                      for uf, l in _IBGE.items()}
+
+# Nao ha recorte urbano x rural aqui. Existia, construido como total + 5 e
+# total - 20, o que dava um gap de exatamente 25,0 pontos em todos os 27 estados
+# — um numero com cara de analise que, por construcao, nao distinguia estado
+# nenhum. Ver a nota em run_analysis.py.
 
 # IDH 2021 (PNUD Brasil)
 IDH_2021 = {
@@ -89,14 +112,15 @@ def build_dataframe() -> pd.DataFrame:
         "nome":       [NOMES[u] for u in ufs],
         "regiao":     [REGIAO[u] for u in ufs],
         "pct_total":  [PCT_INTERNET_2023[u] for u in ufs],
-        "pct_urbano": [PCT_URBANO_2023[u] for u in ufs],
-        "pct_rural":  [PCT_RURAL_2023[u] for u in ufs],
         "idh":        [IDH_2021[u] for u in ufs],
         "pop_mil":    [POP_MIL[u] for u in ufs],
     })
-    df["gap_digital"]              = (df["pct_urbano"] - df["pct_rural"]).round(1)
     df["pct_sem_internet"]         = (100 - df["pct_total"]).round(1)
-    df["domicilios_sem_internet_k"] = ((1 - df["pct_total"] / 100) * df["pop_mil"] / 3.1).round(0).astype(int)
+    # Observado (total - com internet), não estimado por "população / 3,1
+    # moradores": a média nacional de moradores por domicílio subestimava
+    # justamente o Norte e o Nordeste, onde o domicílio é maior — e são as
+    # praças que este ranking recomenda.
+    df["domicilios_sem_internet_k"] = [DOM_SEM_INTERNET_K[u] for u in ufs]
     return df
 
 
@@ -150,8 +174,11 @@ def add_risk_flags(df: pd.DataFrame) -> pd.DataFrame:
     def estrategia(row):
         if row["mercado_saturado"]:
             return "Upgrade premium / retenção"
-        if row["pct_rural"] < 60:
-            return "Satélite / radiofrequência rural"
+        # A regra usava o percentual rural, que era uma constante disfarçada.
+        # Penetração total abaixo de 80% é observada e diz a mesma coisa que
+        # importa aqui: o mercado ainda não tem cobertura fixa madura.
+        if row["pct_total"] < 80:
+            return "Satélite / radiofrequência + FTTH nas capitais"
         if row["idh"] >= 0.72:
             return "Fibra FTTH urbana"
         return "Fibra FTTC + subsídio governo"
@@ -186,7 +213,6 @@ def main():
     # KPIs nacionais
     print("\n=== KPIs Nacionais — IBGE PNAD 2023 ===")
     print(f"  Media nacional de penetracao:     {df['pct_total'].mean():.1f}%")
-    print(f"  Gap medio urbano x rural:          {df['gap_digital'].mean():.1f} p.p.")
     print(f"  Domicilios sem internet:           ~{df['domicilios_sem_internet_k'].sum():,}k")
     print(f"  Estados com < 80% penetracao:      {(df['pct_total'] < 80).sum()}")
     print(f"  Estados saturados (> 90%):         {df['mercado_saturado'].sum()}")

@@ -4,3 +4,7 @@ plotly==5.22.0
 requests==2.31.0
 jupyter==1.0.0
 ipykernel==6.29.4
+
+# exportar as figuras como PNG (docs/img). Sem ele o script grava so o HTML
+# e avisa; nada quebra.
+kaleido==0.2.1
