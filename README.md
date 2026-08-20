@@ -20,7 +20,7 @@ cidades já têm acesso acima da média nacional.**
 
 **A brecha regional praticamente acabou. A brecha rural, não.**
 
-O gap entre Norte+Nordeste e Sul+Sudeste é de **3,5 pontos percentuais** — pequeno
+O gap entre Norte+Nordeste e Sul+Sudeste é de **4,6 pontos percentuais** — pequeno
 demais para orientar capex. Já o gap entre domicílio urbano e rural é de **13,0
 pontos no país**, e abre muito mais em algumas regiões:
 
@@ -80,14 +80,14 @@ Declaradas antes de olhar o resultado; o script imprime confirmada ou refutada.
 
 | # | Hipótese | Resultado |
 |---|---|---|
-| H1 | Há gap regional relevante entre Norte+Nordeste e Sul+Sudeste | **Refutada** — 3,5pp |
+| H1 | Há gap regional relevante entre Norte+Nordeste e Sul+Sudeste | **Refutada** — 4,6pp |
 | H2 | O ranking por taxa e o por volume apontam para estados diferentes | **Confirmada** — ρ = 0,24; 1 de 5 coincide |
 | H3 | O IDH estadual explica boa parte da variação de acesso | **Confirmada** — r = 0,769 (r² = 0,59) |
 
 **H1 foi refutada, e é a hipótese mais útil das três.** Uma versão anterior deste
 projeto a dava como confirmada, com 11,1pp — mas rodava sobre percentuais
 escritos à mão que não vinham do PNAD. Com o dado observado, o gap regional cai
-para 3,5pp: a desigualdade de acesso migrou de "que região" para "cidade ou
+para 4,6pp: a desigualdade de acesso migrou de "que região" para "cidade ou
 campo". Quem ainda planeja expansão por mapa de região está resolvendo um
 problema que encolheu.
 

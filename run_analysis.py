@@ -227,10 +227,17 @@ ORDER = ["Norte", "Nordeste", "Centro-Oeste", "Sudeste", "Sul"]
 reg["ordem"] = reg["regiao"].map({r: i for i, r in enumerate(ORDER)})
 reg = reg.sort_values("ordem").drop("ordem", axis=1)
 
+# Ponderado por DOMICILIOS, nao media de medias estaduais. A media simples de
+# 27 percentuais da a Roraima (270 mil domicilios) o mesmo peso que a Sao Paulo
+# (17 milhoes), e a pergunta de negocio aqui e "que fracao dos domicilios da
+# regiao tem acesso" — nao "quanto marca o estado tipico".
+# As duas contas davam 3,5pp e 4,6pp: o notebook usava uma e o script a outra.
+_nne = df[df["regiao"].isin(["Norte", "Nordeste"])]
+_sse = df[df["regiao"].isin(["Sul", "Sudeste"])]
 gap_norte_sul = (
-    reg.loc[reg["regiao"].isin(["Sul", "Sudeste"]), "media_pct"].mean() -
-    reg.loc[reg["regiao"].isin(["Norte", "Nordeste"]), "media_pct"].mean()
-)
+    (_sse["dom_total_k"] - _sse["dom_sem_k"]).sum() / _sse["dom_total_k"].sum() -
+    (_nne["dom_total_k"] - _nne["dom_sem_k"]).sum() / _nne["dom_total_k"].sum()
+) * 100
 h1_ok = gap_norte_sul > 5
 print(f"  H1: gap Norte+NE vs Sul+SE = {gap_norte_sul:.1f}pp ({'CONFIRMADA' if h1_ok else 'REFUTADA'})")
 

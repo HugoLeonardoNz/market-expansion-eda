@@ -1,6 +1,6 @@
-﻿sigla,nome,regiao,pct_total,idh,pop_mil,pct_sem_internet,domicilios_sem_internet_k,idh_norm,score_oportunidade,score_normalizado,categoria,risco_capacidade_pagamento,mercado_saturado,estrategia_recomendada
-BA,Bahia,Nordeste,89.2,0.66,14931,10.8,589,0.15025906735751313,0.927,43.6,Alta,False,False,Fibra FTTC + subsídio governo
-PE,Pernambuco,Nordeste,88.9,0.673,9675,11.1,388,0.21761658031088107,0.654,30.3,Moderada,False,False,Fibra FTTC + subsídio governo
-CE,Ceará,Nordeste,89.5,0.682,9241,10.5,340,0.26424870466321276,0.613,28.3,Moderada,False,False,Fibra FTTC + subsídio governo
-MA,Maranhão,Nordeste,86.8,0.639,7153,13.2,297,0.04145077720207259,0.492,22.4,Moderada,True,False,Fibra FTTC + subsídio governo
-AM,Amazonas,Norte,88.7,0.708,4145,11.3,136,0.39896373056994805,0.328,14.5,Baixa,False,False,Fibra FTTC + subsídio governo
+﻿sigla,nome,regiao,pct_total,dom_sem_k,idh,score_100
+BA,Bahia,Nordeste,89.2,589,0.66,43.6
+PE,Pernambuco,Nordeste,88.9,388,0.673,30.3
+CE,Ceará,Nordeste,89.5,340,0.682,28.3
+MA,Maranhão,Nordeste,86.8,297,0.639,22.4
+AM,Amazonas,Norte,88.7,136,0.708,14.5

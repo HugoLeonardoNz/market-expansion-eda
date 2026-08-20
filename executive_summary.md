@@ -21,7 +21,7 @@ eixo nos últimos anos.
 
 ### 1. A brecha regional acabou; a rural, não
 
-O gap entre Norte+Nordeste e Sul+Sudeste é de **3,5 pontos percentuais**. É
+O gap entre Norte+Nordeste e Sul+Sudeste é de **4,6 pontos percentuais**. É
 pequeno demais para orientar investimento — e derruba a hipótese de trabalho com
 que esta análise começou.
 
