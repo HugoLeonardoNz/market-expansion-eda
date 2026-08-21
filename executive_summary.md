@@ -79,8 +79,12 @@ Entre 2016 e 2025 o Brasil foi de **70,8% para 95,0%**, mas o ganho anual caiu d
 A fase de expansão orgânica acabou. O que resta é caro por definição — é o
 domicílio que o mercado deixou por último, e ele é majoritariamente rural.
 
-> A série 2019–2023 é **nacional**, não por estado. Ela dá ordem de grandeza da
-> desaceleração e não autoriza comparar velocidade de adoção entre unidades da federação.
+> O **gráfico** de tendência é nacional; o dado por trás dele não é. A PNAD Contínua
+> publica o indicador por UF em todos os anos da série, e é assim que ele entra no
+> [painel Power BI](https://github.com/HugoLeonardoNz/socioeconomic-powerbi-public) —
+> lá dá para comparar velocidade de adoção entre estados. Este relatório não faz essa
+> comparação: o recorte aqui é a fotografia de 2023, ano em que o método foi conferido
+> contra o release do IBGE.
 
 ---
 

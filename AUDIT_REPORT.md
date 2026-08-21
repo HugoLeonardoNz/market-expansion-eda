@@ -15,7 +15,7 @@
 ### `run_analysis.py` (novo)
 - Script standalone que executa toda a lógica analítica do notebook sem necessidade de Jupyter
 - Gera 6 gráficos HTML interativos em `outputs/figures/`:
-  - `tendencia_2019_2023.html` — evolução da penetração nacional 2019–2023 (+7,9pp)
+  - `tendencia_nacional.html` — evolução da penetração nacional 2016–2025 (+24,2pp), com o buraco de 2020 explícito
   - `penetracao_por_regiao.html` — H1: penetração média por região com intervalo min/max
   - `taxa_x_volume.html` — H2: taxa de acesso × volume desconectado por estado
   - `correlacao_idh_internet.html` — H3: scatter IDH × internet com regressão e outliers
@@ -80,7 +80,7 @@ outputs/
 ├── market_scores.csv            (ranking completo 27 estados)
 ├── top5_recommendation.csv      (top 5 estados recomendados)
 └── figures/
-    ├── tendencia_2019_2023.html
+    ├── tendencia_nacional.html
     ├── penetracao_por_regiao.html
     ├── taxa_x_volume.html
     ├── correlacao_idh_internet.html

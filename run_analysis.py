@@ -12,7 +12,7 @@ Saídas:
     outputs/figures/taxa_x_volume.html
     outputs/figures/correlacao_idh_internet.html
     outputs/figures/score_oportunidade.html
-    outputs/figures/tendencia_2019_2023.html   (se API disponível)
+    outputs/figures/tendencia_nacional.html
     outputs/market_scores.csv
     outputs/top5_recommendation.csv
 """
@@ -146,8 +146,27 @@ POP_MIL = {
 
 NOMES = {v[0]: v[1] for v in UF_REF.values()}
 
-# Tendência histórica 2019–2023 (IBGE PNAD Contínua)
-TENDENCIA_NACIONAL = {2019: 79.1, 2020: 82.7, 2021: 85.0, 2022: 86.8, 2023: 87.0}
+# ── Tendência nacional, observada ────────────────────────────────────────────
+# Aqui existia um dicionário escrito à mão:
+#   {2019: 79.1, 2020: 82.7, 2021: 85.0, 2022: 86.8, 2023: 87.0}
+# Os 87,0% de 2023 são EXATAMENTE o número que o comentário sessenta linhas acima
+# identifica como inventado — a limpeza tirou o PCT_TOTAL fabricado e deixou a
+# série fabricada no lugar, plotada sob o título "IBGE PNAD Contínua". Pior: ela
+# tinha um ponto em 2020, ano em que a PNAD não coletou o módulo de TIC. O gráfico
+# mostrava um dado que não foi coletado.
+#
+# Agora sai da mesma fonte do resto do script: N1 (Brasil), situação Total.
+def _tendencia_nacional() -> dict[int, float]:
+    return {
+        l["ano"]: round(l["pct"], 1)
+        for l in _carregar_sidra()
+        if l["nivel"] == "N1" and l["situacao"] == "Total"
+    }
+
+
+TENDENCIA_NACIONAL = _tendencia_nacional()
+ANO_INI = min(TENDENCIA_NACIONAL)
+ANO_FIM = max(TENDENCIA_NACIONAL)
 
 COR_REG = {
     "Sudeste":     "#2C3E50",
@@ -194,24 +213,45 @@ df = build_df()
 print(f"  27 estados | media penetracao: {df['pct_total'].mean():.1f}%")
 
 # --------------------------------------------------------------------------
-# 1. Tendência nacional 2019–2023
+# 1. Tendência nacional observada
 # --------------------------------------------------------------------------
 
-trend = pd.DataFrame(list(TENDENCIA_NACIONAL.items()), columns=["ano", "pct_media"])
+trend = pd.DataFrame(sorted(TENDENCIA_NACIONAL.items()), columns=["ano", "pct_media"])
+
+# 2020 entra como linha com valor nulo: o plotly quebra a linha no buraco em vez
+# de ligar 2019 a 2021 numa reta que sugere uma medição que nunca houve.
+if 2020 not in TENDENCIA_NACIONAL and ANO_INI < 2020 < ANO_FIM:
+    trend = pd.concat(
+        [trend, pd.DataFrame([{"ano": 2020, "pct_media": None}])]
+    ).sort_values("ano").reset_index(drop=True)
+
 fig = px.line(trend, x="ano", y="pct_media", markers=True,
               labels={"ano": "Ano", "pct_media": "% Domicílios com Internet"})
-fig.update_traces(line_color="#2563EB", marker_size=8, marker_color="#2563EB",
-                  text=trend["pct_media"].astype(str) + "%", textposition="top center",
-                  mode="lines+markers+text")
-fig.add_annotation(
-    x=2023, y=87.0, text="+7.9pp em 5 anos", showarrow=True,
-    arrowhead=2, ax=-60, ay=-30, font=dict(size=11, color="#2563EB")
+fig.update_traces(
+    line_color="#2563EB", marker_size=8, marker_color="#2563EB",
+    text=[("" if pd.isna(v) else f"{v:.1f}%".replace(".", ",")) for v in trend["pct_media"]],
+    textposition="top center", mode="lines+markers+text",
+    connectgaps=False,
 )
-fig.update_layout(yaxis=dict(range=[75, 95]))
+
+avanco = TENDENCIA_NACIONAL[ANO_FIM] - TENDENCIA_NACIONAL[ANO_INI]
+fig.add_annotation(
+    x=ANO_FIM, y=TENDENCIA_NACIONAL[ANO_FIM],
+    text=f"+{avanco:.1f}pp em {ANO_FIM - ANO_INI} anos".replace(".", ","),
+    showarrow=True, arrowhead=2, ax=-60, ay=-30, font=dict(size=11, color="#2563EB"),
+)
+fig.add_annotation(
+    x=2020, y=TENDENCIA_NACIONAL.get(2019, 0), yshift=-34,
+    text="2020: a PNAD não coletou<br>o módulo de TIC",
+    showarrow=False, font=dict(size=10, color="#94A3B8"), align="center",
+)
+fig.update_layout(yaxis=dict(range=[65, 100]),
+                  xaxis=dict(dtick=1, tickmode="linear"))
 finish(fig, "Penetração de internet no Brasil",
-       "média nacional de domicílios com acesso, 2019–2023", height=420)
-save(fig, OUTPUTS, "tendencia_2019_2023")
-print("  OK tendencia_2019_2023.html")
+       f"domicílios com acesso, {ANO_INI}–{ANO_FIM} · IBGE PNAD Contínua · "
+       "razão entre as tabelas SIDRA 9649/7311 e 7167", height=420)
+save(fig, OUTPUTS, "tendencia_nacional")
+print("  OK tendencia_nacional.html")
 
 # --------------------------------------------------------------------------
 # 2. Penetração por região (H1)
