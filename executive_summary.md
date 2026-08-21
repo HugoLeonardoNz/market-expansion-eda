@@ -49,7 +49,7 @@ A correlação de postos entre "pior taxa de acesso" e "maior número de domicí
 sem internet" é de **ρ = 0,24**. Dos cinco estados com pior penetração, apenas
 **um** está entre os cinco com maior volume desconectado.
 
-O caso extremo é São Paulo: **a melhor taxa do país (95,0%) e o maior número
+O caso extremo é São Paulo: **5º em taxa de acesso (95,0%) e o maior número
 absoluto de domicílios desconectados (852 mil)** — mais que Bahia e Pernambuco
 somados em percentual de prioridade.
 

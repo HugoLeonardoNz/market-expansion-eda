@@ -1,0 +1,28 @@
+name: testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  achados:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements-dev.txt
+
+      # Roda offline: o cache do SIDRA esta versionado em data/sidra_cache.
+      # Sem API e sem cache, sidra.py levanta SidraIndisponivel em vez de cair
+      # num fallback — foi um fallback silencioso que deixou este repositorio
+      # rodar meses com numero inventado sob um rodape que dizia "Fonte: IBGE".
+      - name: Testes dos achados publicados
+        run: pytest tests/ -v

@@ -5,6 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-pandas%20%2B%20plotly-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Dados](https://img.shields.io/badge/Dados-IBGE%20PNAD%20%2B%20PNUD-10b981?style=for-the-badge)
 ![Domínio](https://img.shields.io/badge/Domínio-Telecom%20%2F%20Expansão-0ea5e9?style=for-the-badge)
+![testes](https://github.com/HugoLeonardoNz/market-expansion-eda/actions/workflows/tests.yml/badge.svg)
 
 **Em 2023, 92,6% dos domicílios brasileiros tinham internet. A divisão que sobrou não é
 entre regiões — é entre a cidade e o campo, e ela é maior no Norte, onde as
@@ -57,7 +58,7 @@ um** está entre os cinco com maior volume desconectado.
 | 4 | PE · 88,9% | | RJ · 390 mil (94,1%) |
 | 5 | PI · 89,1% | | PE · 388 mil (88,9%) |
 
-São Paulo tem a **melhor** taxa do país e o **maior** número absoluto de
+São Paulo é o **5º** estado em taxa de acesso e o **1º** em número absoluto de
 domicílios desconectados. Quem planeja pelo percentual vai para o Acre; quem
 planeja por mercado endereçável vai para São Paulo. São decisões de capex
 opostas, tiradas do mesmo dado.
@@ -224,6 +225,31 @@ market-expansion-eda/
 ```
 
 ---
+
+---
+
+## Os achados publicados são testados
+
+```bash
+pip install -r requirements-dev.txt
+pytest tests/ -v
+```
+
+Número em README não executa — e foi exatamente por isso que este portfólio deixou
+texto e código divergirem em silêncio mais de uma vez. Num dos repositórios, um
+comentário explicava que 87,0% era número inventado e o gráfico sessenta linhas
+abaixo plotava 87,0%. Em outro, o texto dizia "São Paulo tem a melhor taxa do país"
+enquanto o CSV ao lado registrava que era o 5º.
+
+Cada teste amarra uma frase deste README ao valor que o pipeline devolve: SP em
+5º por taxa e 1º por volume, H1 refutada em 4,6pp, ρ = 0,24, r = 0,769, e a fila
+BA → PE → CE → MA → AM. Há também um teste de premissa: se o corte de 92% parar
+de separar estados, a fila vira ranking de população e o exercício perde o sentido
+— é o que já acontece em 2025.
+
+Se o gerador, a fonte ou a limpeza mudarem, o teste falha e obriga a atualizar o
+texto. É a mesma regra que vale para dado: **ou se deriva de uma fonte só, ou se
+escreve um teste que falha quando as duas divergirem.**
 
 ## Autor
 
