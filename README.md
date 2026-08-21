@@ -6,7 +6,7 @@
 ![Dados](https://img.shields.io/badge/Dados-IBGE%20PNAD%20%2B%20PNUD-10b981?style=for-the-badge)
 ![Domínio](https://img.shields.io/badge/Domínio-Telecom%20%2F%20Expansão-0ea5e9?style=for-the-badge)
 
-**92,6% dos domicílios brasileiros têm internet. A divisão que sobrou não é
+**Em 2023, 92,6% dos domicílios brasileiros tinham internet. A divisão que sobrou não é
 entre regiões — é entre a cidade e o campo, e ela é maior no Norte, onde as
 cidades já têm acesso acima da média nacional.**
 
@@ -64,7 +64,8 @@ opostas, tiradas do mesmo dado.
 
 O score de oportunidade combina volume, lacuna e IDH, com pesos declarados no
 código. Estados acima de 92% de penetração ficam fora da fila — são mercados de
-retenção e upgrade:
+retenção e upgrade. **A fila abaixo é de 2023**; a seção seguinte explica por que não é
+de 2025:
 
 | # | Estado | Região | Penetração | Domicílios sem internet | IDH | Score |
 |---|---|---|---:|---:|---:|---:|
@@ -73,6 +74,34 @@ retenção e upgrade:
 | 3 | Ceará | Nordeste | 89,5% | 340 mil | 0,682 | 28,3 |
 | 4 | Maranhão | Nordeste | 86,8% | 297 mil | 0,639 | 22,4 |
 | 5 | Amazonas | Norte | 88,7% | 136 mil | 0,708 | 14,5 |
+
+### Por que a fila é de 2023, com a série indo até 2025
+
+Porque em 2025 ela não existe mais.
+
+O corte de 92% de penetração deixava **13 estados** na fila em 2023. Em 2025 deixa
+**um**: o Acre, com 90,6%. O estado com pior acesso do país em 2025 tem mais acesso do
+que a média nacional tinha em 2022.
+
+| | Estados abaixo de 92% | Pior estado | Melhor estado |
+|---|---:|---:|---:|
+| 2023 | 13 | 84,4% (AC) | 97,4% (DF) |
+| **2025** | **1** | **90,6% (AC)** | **98,3% (DF)** |
+
+Isso não é defeito do recorte — é o resultado. **A pergunta "em que estado expandir
+por lacuna de acesso" tem prazo de validade, e ele venceu.** Rodar o mesmo score sobre
+2025 devolveria uma fila de um item, o que não é análise: é um indicador que parou de
+discriminar porque o mercado saturou no grão em que ele enxerga.
+
+O recorte de 2023 fica, então, por dois motivos declarados: é o último ano em que o
+exercício separa estados, e é o ano em que o método pode ser conferido contra o release
+publicado do IBGE (92,6% calculado aqui contra 92,5% divulgado). O que **substitui** essa
+análise em 2025 está no
+[painel Power BI](https://github.com/HugoLeonardoNz/socioeconomic-powerbi-public), que
+se ancora sempre no último ano: lá a leitura deixou de ser por estado e passou a ser
+urbano × rural, onde a distância ainda é de 13,1pp no Norte.
+
+---
 
 ## As três hipóteses
 
