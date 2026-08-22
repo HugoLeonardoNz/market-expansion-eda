@@ -104,6 +104,55 @@ urbano × rural, onde a distância ainda é de 13,1pp no Norte.
 
 ---
 
+### O ranking por taxa não separa estados vizinhos
+
+A PNAD Contínua é **amostra**, não censo. Ordenar 27 estados por estimativa pontual
+e chamar isso de ranking supõe uma precisão que a pesquisa não promete — e o IBGE
+publica o coeficiente de variação de cada estimativa (variável 10629 do SIDRA)
+exatamente para dizer o quanto ela pode se mover.
+
+O teste é o mais simples que existe: dois estados **vizinhos** no ranking se
+distinguem, ou os intervalos de 95% se encostam?
+
+![Ranking com intervalo de confiança](docs/img/ic_ranking_taxa.png)
+
+**Os 26 pares vizinhos se sobrepõem. Todos.** O Distrito Federal, 1º com 97,4%,
+tem intervalo \[94,7 ; 100\]; São Paulo, 5º com 95,0%, tem \[93,9 ; 96,1\]. A
+diferença de 2,4 pontos entre o 1º e o 5º lugar não sobrevive à margem de erro.
+
+Isso **reforça** a tese central deste projeto em vez de enfraquecë-la. O ranking
+por taxa já apontava para o lugar errado por medir a coisa errada; agora se sabe
+que, entre vizinhos, ele nem chega a medir. O ranking por volume separa melhor
+porque a diferença é de outra ordem: 852 mil domicílios em SP contra 589 mil na
+Bahia não é um empate técnico de 0,2pp.
+
+#### O que não dá para afirmar, e por quê
+
+O IBGE publica o CV de cada **contagem**, não o da **razão** entre duas. Para
+p = X/N, com X contido em N:
+
+```
+CV²(p) = CV²(X) + CV²(N) − 2ρ·CV(X)·CV(N)
+```
+
+e o ρ não é publicado. Os dois extremos limitam a resposta:
+
+| Suposição | CV da proporção | Pares vizinhos indistinguíveis (2023) |
+|---|---|---|
+| ρ = 0 (independentes) | √(CV²X + CV²N) | 26 de 26 |
+| **denominador fixo** (adotada) | CV(X) | **26 de 26** |
+| ρ = 1 (perfeita) | \|CV(X) − CV(N)\| | 13 de 26 |
+
+A suposição adotada é o meio, e erra para o lado **conservador**: o intervalo sai
+mais largo que o real, porque ignora a correlação positiva que reduz a variância
+da razão. Entre afirmar menos do que o dado permite e afirmar mais, o primeiro
+erro é o barato.
+
+E mesmo no cenário mais otimista, que ninguém consegue justificar, **metade dos
+pares continua indistinguível**. A conclusão não depende da escolha.
+
+---
+
 ## As três hipóteses
 
 Declaradas antes de olhar o resultado; o script imprime confirmada ou refutada.

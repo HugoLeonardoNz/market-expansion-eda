@@ -113,6 +113,10 @@ def _dados_ibge(ano: int = ANO_REF) -> dict:
             # diferentes, e justamente no Norte/Nordeste, onde o domicílio é
             # maior, a conta subestimava o número de casas.
             "dom_sem_k":   int(round(linha["total"] - linha["com_internet"])),
+            # Precisao da amostra, direto do IBGE (variavel 10629 do SIDRA).
+            "margem_pp":   linha.get("margem_pp"),
+            "ic_inf":      linha.get("ic_inf"),
+            "ic_sup":      linha.get("ic_sup"),
         }
     if len(out) != 27:
         raise RuntimeError(f"esperava 27 UFs do SIDRA, vieram {len(out)}")
@@ -193,6 +197,9 @@ def build_df() -> pd.DataFrame:
     })
     df["dom_sem_k"]   = [IBGE[u]["dom_sem_k"] for u in ufs]
     df["dom_total_k"] = [IBGE[u]["dom_total_k"] for u in ufs]
+    df["margem_pp"]   = [IBGE[u]["margem_pp"] for u in ufs]
+    df["ic_inf"]      = [IBGE[u]["ic_inf"] for u in ufs]
+    df["ic_sup"]      = [IBGE[u]["ic_sup"] for u in ufs]
     # Os dois criterios de prioridade, lado a lado: 1 = pior taxa de acesso;
     # 1 = maior numero absoluto de domicilios sem internet.
     df["rank_taxa"]   = df["pct_total"].rank(method="min").astype(int)
@@ -342,6 +349,40 @@ finish(fig, "H2 · Taxa de acesso × volume desconectado",
 save(fig, OUTPUTS, "taxa_x_volume", png=True)
 print("  OK taxa_x_volume.html")
 
+# --------------------------------------------------------------------------
+# 3b. Quanto do ranking por taxa e ruido amostral
+# --------------------------------------------------------------------------
+# A PNAD Continua e AMOSTRA. Ordenar 27 estados por estimativa pontual e
+# apresentar isso como ranking supoe uma precisao que a pesquisa nao promete: o
+# IBGE publica o coeficiente de variacao de cada estimativa exatamente para
+# dizer o quanto ela pode se mover.
+#
+# O teste aqui e o mais simples que existe e o mais dificil de contestar: dois
+# estados VIZINHOS no ranking se distinguem, ou os intervalos se encostam?
+
+ranked = df.sort_values("pct_total", ascending=False).reset_index(drop=True)
+pares = list(zip(ranked.itertuples(), ranked.iloc[1:].itertuples()))
+sobrepostos = [(a, b) for a, b in pares if a.ic_inf <= b.ic_sup]
+print(f"  H2b: {len(sobrepostos)} de {len(pares)} pares vizinhos do ranking por "
+      f"taxa NAO se distinguem (IC 95%)")
+
+fig = go.Figure(go.Scatter(
+    x=ranked["pct_total"], y=ranked["sigla"],
+    error_x=dict(type="data", array=ranked["margem_pp"],
+                 color="#94A3B8", thickness=1.2, width=3),
+    mode="markers", marker=dict(size=8, color="#2563EB"),
+    customdata=ranked[["ic_inf", "ic_sup"]].values,
+    hovertemplate="%{y}: %{x:.1f}%<br>IC 95%: %{customdata[0]:.1f} a %{customdata[1]:.1f}<extra></extra>",
+))
+fig.update_layout(yaxis=dict(autorange="reversed", title=""),
+                  xaxis=dict(title="% de domicilios com internet"),
+                  showlegend=False)
+finish(fig, "O ranking por taxa nao separa estados vizinhos",
+       f"ponto = estimativa · barra = intervalo de 95% · {ANO_REF} · "
+       f"{len(sobrepostos)} dos {len(pares)} pares vizinhos se sobrepoem",
+       height=760)
+save(fig, OUTPUTS, "ic_ranking_taxa", png=True)
+print("  OK ic_ranking_taxa.html")
 # --------------------------------------------------------------------------
 # 4. Correlação IDH × penetração (H3)
 # --------------------------------------------------------------------------
@@ -505,7 +546,10 @@ print("  OK choropleth_internet_brasil.html")
 # --------------------------------------------------------------------------
 
 df_score[["sigla","nome","regiao","pct_total","idh","pop_mil","dom_sem_k",
-          "rank_taxa","rank_volume","dist_rank","score_100"]].to_csv(
+          "rank_taxa","rank_volume","dist_rank","score_100",
+          # Precisao da amostra junto do numero: quem abrir o CSV ve o
+          # intervalo sem precisar rodar o script.
+          "margem_pp","ic_inf","ic_sup"]].to_csv(
     ROOT / "outputs" / "market_scores.csv", index=False, encoding="utf-8-sig"
 )
 top5 = df_score[df_score["pct_total"] < 90].head(5)

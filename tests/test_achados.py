@@ -136,3 +136,63 @@ def test_corte_de_92_ainda_discrimina(df):
 
 def test_27_estados(df):
     assert len(df) == 27
+
+
+# ── Incerteza amostral ────────────────────────────────────────────────────────
+
+def test_intervalo_vem_do_ibge(df):
+    """A margem de erro e' calculada do CV publicado, nao arbitrada.
+
+    Se `margem_pp` sumir ou vier zerada, o painel voltou a tratar estimativa
+    amostral como contagem.
+    """
+    assert "margem_pp" in df.columns, "A coluna de margem sumiu do pipeline"
+    assert df["margem_pp"].notna().all(), "Ha UF sem margem de erro"
+    assert (df["margem_pp"] > 0).all(), "Margem zerada: o CV nao esta sendo lido"
+    # CV por UF na PNAD fica na casa de 0,6% a 2%; margem de 95% sobre ~90%
+    # cai entre ~1pp e ~4pp. Fora disso, o calculo quebrou.
+    assert df["margem_pp"].between(0.5, 6.0).all(), (
+        f"Margens fora da faixa plausivel: {df['margem_pp'].min():.2f} a "
+        f"{df['margem_pp'].max():.2f}pp"
+    )
+
+
+def test_ranking_por_taxa_nao_separa_vizinhos(df):
+    """README: "os 26 pares vizinhos se sobrepoem. Todos."
+
+    E o achado que sustenta a tese do projeto: o ranking por taxa aponta para o
+    lugar errado, e entre vizinhos ele nem chega a medir.
+    """
+    r = df.sort_values("pct_total", ascending=False).reset_index(drop=True)
+    pares = list(zip(r.itertuples(), r.iloc[1:].itertuples()))
+    sobrepostos = sum(1 for a, b in pares if a.ic_inf <= b.ic_sup)
+    assert sobrepostos == len(pares), (
+        f"So {sobrepostos} de {len(pares)} pares vizinhos se sobrepoem. Se caiu, "
+        "o texto do README precisa mudar junto."
+    )
+
+
+def test_ic_contem_a_estimativa(df):
+    """Sanidade: o intervalo tem que conter o ponto."""
+    assert (df["ic_inf"] <= df["pct_total"]).all()
+    assert (df["pct_total"] <= df["ic_sup"]).all()
+
+
+def test_volume_separa_melhor_que_taxa(df):
+    """A tese: o ranking por volume discrimina onde o de taxa empata.
+
+    Nao usa IC no volume de proposito — o IBGE nao publica a estimativa de
+    domicilios SEM internet, entao a margem dela dependeria de uma correlacao
+    que tambem nao e publicada. O que da para afirmar sem suposicao nenhuma e
+    que a distancia RELATIVA entre o 1o e o 2o e de outra ordem de grandeza.
+    """
+    v = df.sort_values("dom_sem_k", ascending=False).reset_index(drop=True)
+    salto_volume = (v.loc[0, "dom_sem_k"] - v.loc[1, "dom_sem_k"]) / v.loc[1, "dom_sem_k"]
+
+    t = df.sort_values("pct_total", ascending=False).reset_index(drop=True)
+    salto_taxa = (t.loc[0, "pct_total"] - t.loc[1, "pct_total"]) / t.loc[1, "pct_total"]
+
+    assert salto_volume > 10 * salto_taxa, (
+        f"O 1o em volume esta {salto_volume:.1%} acima do 2o; em taxa, "
+        f"{salto_taxa:.1%}. A tese depende dessa diferenca de ordem."
+    )
