@@ -38,10 +38,20 @@ TOP5 = os.path.join(RAIZ, "outputs", "top5_recommendation.csv")
 @pytest.fixture(scope="session", autouse=True)
 def roda_pipeline():
     """Regera as saídas antes de conferir — testar o CSV velho não prova nada."""
-    subprocess.run(
+    r = subprocess.run(
         [sys.executable, "run_analysis.py"],
-        cwd=RAIZ, check=True, capture_output=True,
+        cwd=RAIZ, check=False, capture_output=True, text=True,
+        encoding="utf-8", errors="replace",
     )
+    if r.returncode != 0:
+        # Sem isto, uma falha do script virava CalledProcessError seco e o
+        # traceback mostrava as entranhas do subprocess.py — treze erros
+        # identicos em CI, nenhum dizendo o motivo.
+        pytest.fail(
+            "run_analysis.py saiu com codigo %d\n\n--- stdout ---\n%s\n--- stderr ---\n%s"
+            % (r.returncode, r.stdout[-3000:], r.stderr[-3000:]),
+            pytrace=False,
+        )
 
 
 @pytest.fixture(scope="module")
