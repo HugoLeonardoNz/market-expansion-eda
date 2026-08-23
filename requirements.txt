@@ -8,3 +8,8 @@ ipykernel==6.29.4
 # exportar as figuras como PNG (docs/img). Sem ele o script grava so o HTML
 # e avisa; nada quebra.
 kaleido==0.2.1
+
+# corr(method="spearman") em pandas delega para o scipy. Funcionava na
+# maquina de quem escreveu porque o jupyter ja o arrasta; num ambiente limpo
+# (o CI) o run_analysis.py morria com ModuleNotFoundError.
+scipy==1.13.1
