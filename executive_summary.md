@@ -128,5 +128,5 @@ sem internet por causa da população, mas com penetração acima de 91% o cresc
 
 ---
 
-*Análise desenvolvida por Hugo Leonardo | Analista de Dados Pleno — Speed Fibra*
+*Análise desenvolvida por Hugo Nazário | Analista de Dados Pleno — Speed Fibra*
 *Dados: IBGE PNAD Contínua 2023 (Creative Commons 4.0) | IDH: PNUD Brasil 2021*

@@ -13,7 +13,7 @@ cidades já têm acesso acima da média nacional.**
 
 </div>
 
-> Peça do portfólio de **Hugo Leonardo**, Analista de Dados — cada projeto, com o contexto de por que foi feito, está em **[hugoleonardonz.github.io/portfolio](https://hugoleonardonz.github.io/portfolio/)**.
+> Peça do portfólio de **Hugo Nazário**, Analista de Dados — cada projeto, com o contexto de por que foi feito, está em **[hugoleonardonz.github.io/portfolio](https://hugoleonardonz.github.io/portfolio/)**.
 
 ![Gap urbano × rural por região](docs/img/gap_urbano_rural.png)
 
@@ -304,8 +304,8 @@ escreve um teste que falha quando as duas divergirem.**
 
 ## Autor
 
-**Hugo Leonardo** · Analista de Dados Pleno — SQL · Python · Power BI
+**Hugo Nazário** · Analista de Dados Pleno — SQL · Python · Power BI
 Speed Fibra · Santa Luzia, MG
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Hugo%20Leonardo-0077B5?style=flat&logo=linkedin)](https://www.linkedin.com/in/hugo-leonardo-data-analyst/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Hugo%20Naz%C3%A1rio-0077B5?style=flat&logo=linkedin)](https://www.linkedin.com/in/hugo-leonardo-data-analyst/)
 [![GitHub](https://img.shields.io/badge/GitHub-HugoLeonardoNz-181717?style=flat&logo=github)](https://github.com/HugoLeonardoNz)
