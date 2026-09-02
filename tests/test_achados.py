@@ -206,3 +206,37 @@ def test_volume_separa_melhor_que_taxa(df):
         f"O 1o em volume esta {salto_volume:.1%} acima do 2o; em taxa, "
         f"{salto_taxa:.1%}. A tese depende dessa diferenca de ordem."
     )
+
+
+def test_a_fila_de_2023_tem_13_estados_e_a_de_2025_tem_um():
+    """O número que o cartão do site publica, e o motivo do recorte ser 2023.
+
+    O site diz: "o corte de 92% deixava 13 estados na fila em 2023 e deixa um
+    em 2025". Essa frase é o argumento inteiro do projeto — ela explica por que
+    a análise fica num ano anterior ao último disponível, o que sem explicação
+    pareceria descuido.
+
+    `test_corte_de_92_ainda_discrimina` já garante que 2023 discrimina, mas com
+    um piso frouxo (>= 8). Este confere os DOIS números exatos que o site
+    afirma, incluindo o de 2025 — que nenhum outro teste tocava, porque nenhuma
+    saída do pipeline usa 2025.
+    """
+    sys.path.insert(0, RAIZ)
+    from sidra import carregar
+
+    linhas = [
+        l for l in carregar()
+        if l["nivel"] == "N3" and l["situacao"] == "Total"
+    ]
+    fila = {
+        ano: sum(1 for l in linhas if l["ano"] == ano and l["pct"] < 92)
+        for ano in (2023, 2025)
+    }
+
+    assert fila[2023] == 13, (
+        f"a fila de 2023 tem {fila[2023]} estados, e o site publica 13"
+    )
+    assert fila[2025] == 1, (
+        f"a fila de 2025 tem {fila[2025]} estados, e o site publica um — se "
+        "virou zero ou voltou a crescer, o argumento do recorte mudou"
+    )
