@@ -17,7 +17,6 @@ Saídas:
     outputs/top5_recommendation.csv
 """
 
-import json
 import warnings
 from pathlib import Path
 
@@ -29,11 +28,13 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from theme import SEQ, finish, save  # noqa: E402
-from plotly.subplots import make_subplots
+from theme import finish, save  # noqa: E402
 
 try:
-    import requests
+    # O import E o teste: se `requests` nao estiver instalado, o script cai
+    # no cache local em vez de falhar. Por isso o F401 fica silenciado aqui
+    # — remover o import removeria a verificacao.
+    import requests  # noqa: F401
     REQUESTS_OK = True
 except ImportError:
     REQUESTS_OK = False
