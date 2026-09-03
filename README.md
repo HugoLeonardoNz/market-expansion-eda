@@ -13,7 +13,7 @@ cidades já têm acesso acima da média nacional.**
 
 </div>
 
-> Peça do portfólio de **Hugo Nazário**, Analista de Dados — cada projeto, com o contexto de por que foi feito, está em **[hugoleonardonz.github.io/portfolio](https://hugoleonardonz.github.io/portfolio/)**.
+> Peça do portfólio de **Hugo Nazário**, Analista de Dados — cada projeto, com o contexto de por que foi feito, está em **[hugonazario.com](https://hugonazario.com/)**.
 
 ![Gap urbano × rural por região](docs/img/gap_urbano_rural.png)
 
