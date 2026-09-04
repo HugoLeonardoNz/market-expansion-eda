@@ -1,6 +1,6 @@
 ﻿sigla,nome,regiao,pct_total,dom_sem_k,idh,score_100
-BA,Bahia,Nordeste,89.2,589,0.66,43.6
-PE,Pernambuco,Nordeste,88.9,388,0.673,30.3
+BA,Bahia,Nordeste,89.2,589,0.66,43.3
+PE,Pernambuco,Nordeste,88.9,388,0.673,29.7
 CE,Ceará,Nordeste,89.5,340,0.682,28.3
-MA,Maranhão,Nordeste,86.8,297,0.639,22.4
-AM,Amazonas,Norte,88.7,136,0.708,14.5
+MA,Maranhão,Nordeste,86.8,297,0.639,22.3
+AM,Amazonas,Norte,88.7,136,0.708,14.4

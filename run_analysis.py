@@ -142,12 +142,12 @@ IDH = {
 
 
 
-POP_MIL = {
-    "RO":1581,"AC":830,"AM":4145,"RR":637,"PA":8604,"AP":846,"TO":1590,
-    "MA":7153,"PI":3289,"CE":9241,"RN":3561,"PB":4060,"PE":9675,"AL":3352,
-    "SE":2338,"BA":14931,"MG":21412,"ES":4109,"RJ":17463,"SP":46649,
-    "PR":11597,"SC":7610,"RS":11467,"MS":2833,"MT":3784,"GO":7267,"DF":3094,
-}
+# População: importada de market_scoring, que a busca do Censo 2022 pela API.
+#
+# Esta era a cópia GÊMEA da constante que vivia lá — os dois arquivos mantendo
+# à mão a mesma tabela, que é o padrão de defeito que a auditoria de 21/08
+# encontrou em quatro lugares deste portfólio. Agora existe uma fonte só.
+from market_scoring import POP_MIL   # noqa: E402
 
 NOMES = {v[0]: v[1] for v in UF_REF.values()}
 

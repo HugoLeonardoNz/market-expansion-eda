@@ -1,7 +1,10 @@
 """
 market_scoring.py
 Calcula o score de oportunidade de expansão de mercado para ISPs no Brasil,
-usando dados públicos IBGE PNAD Contínua 2023 (embutidos como fallback).
+usando dado observado do IBGE, buscado da API do SIDRA e mantido em cache
+versionado — penetração de internet pela PNAD Contínua e população pelo Censo
+2022. Nada aqui é constante escrita à mão, e quando a API não responde o
+script falha em vez de inventar.
 
 Saída:
     outputs/market_scores.csv    — ranking completo de 27 estados
@@ -20,7 +23,7 @@ OUTPUTS = ROOT / "outputs"
 OUTPUTS.mkdir(parents=True, exist_ok=True)
 
 # --------------------------------------------------------------------------
-# Dados IBGE PNAD Contínua 2023 — embutidos (fallback da API SIDRA)
+# Dado do IBGE — buscado da API do SIDRA (ver sidra.py)
 # --------------------------------------------------------------------------
 
 # % domicílios com acesso à internet por UF
@@ -31,6 +34,7 @@ OUTPUTS.mkdir(parents=True, exist_ok=True)
 # do site. Copiadas, já tinham divergido entre si (ES saía 89,5 num arquivo e
 # 89,4 noutro) e nenhuma delas batia com o PNAD. Agora há uma fonte só.
 from sidra import carregar as _carregar_sidra   # noqa: E402
+from sidra import populacao as _populacao_sidra   # noqa: E402
 
 ANO_REF = 2023
 
@@ -69,15 +73,23 @@ IDH_2021 = {
     "GO": 0.735, "DF": 0.824,
 }
 
-# População estimada 2023 (IBGE, em milhares)
+# População: OBSERVADA, via API do SIDRA (Censo 2022).
+#
+# Era a segunda constante escrita à mão deste arquivo, e tinha o mesmo defeito
+# da primeira: "população estimada 2023" vinda das projeções anteriores ao
+# Censo, 4,7% acima do total recenseado e com erro que VARIA por estado — 13,3%
+# no Amapá, 8,1% no Rio, menos de 1% em outros. Como a população entra no score
+# pelo lado do volume, erro que varia por estado mexe no ranking, que é a única
+# coisa que este projeto entrega.
+#
+# A cópia gêmea que existia em run_analysis.py foi removida junto: agora as duas
+# leem daqui.
 POP_MIL = {
-    "RO": 1581, "AC": 830,  "AM": 4145, "RR": 637,  "PA": 8604,
-    "AP": 846,  "TO": 1590, "MA": 7153, "PI": 3289, "CE": 9241,
-    "RN": 3561, "PB": 4060, "PE": 9675, "AL": 3352, "SE": 2338,
-    "BA": 14931,"MG": 21412,"ES": 4109, "RJ": 17463,"SP": 46649,
-    "PR": 11597,"SC": 7610, "RS": 11467,"MS": 2833, "MT": 3784,
-    "GO": 7267, "DF": 3094,
+    _UF_POR_CODIGO[cod]: pessoas / 1000
+    for cod, pessoas in _populacao_sidra().items()
+    if cod in _UF_POR_CODIGO
 }
+assert len(POP_MIL) == 27, f"esperava 27 UFs na populacao, vieram {len(POP_MIL)}"
 
 # Regiões
 REGIAO = {

@@ -219,11 +219,25 @@ em tempo de execução e com o retorno cru versionado em `data/sidra_cache/`.
 | Domicílios com internet, 2016–2021 | **7311** | UF · Região · Brasil | Observado |
 | Total de domicílios (denominador) | **7167** | UF · Região · Brasil | Observado |
 | Urbano × rural | 9649 + 7167 | **Brasil e Região** — não há UF | Observado |
+| População residente | **4709** (Censo 2022) | UF | Observado |
 | IDH estadual | PNUD · Atlas | UF | Observado (Censo 2010) |
 
 Não existe tabela que já entregue "% de domicílios com internet por UF": o
 percentual é a razão entre duas tabelas da mesma pesquisa, no mesmo grão.
 `sidra.py` explica a escolha de cada uma.
+
+A **população** foi a última constante escrita à mão a sair. Ela dizia
+"estimada 2023" e vinha das projeções ANTERIORES ao Censo, que o Censo mostrou
+serem altas: 4,7% acima no total do país, com erro que varia por estado — 13,3%
+no Amapá, 8,1% no Rio, menos de 1% em outros. Como a população entra no score
+pelo lado do volume, erro que varia por estado mexe no ranking, que é a única
+coisa que este projeto entrega. A troca mudou os scores em décimos (Bahia de
+43,6 para 43,3) e **não mudou a fila**: BA → PE → CE → MA → AM continua igual.
+
+Vale o registro de por que é o Censo e não a estimativa: a tabela de estimativa
+(6579) pula justamente 2022 e 2023 — depois do Censo o IBGE parou de projetar os
+anos já recenseados e só retomou em 2024. Contagem observada de 2022 ao lado de
+penetração de 2023 é uma defasagem de um ano, dita aqui em vez de escondida.
 
 **O método foi conferido contra o número publicado pelo IBGE.** O release da
 PNAD TIC 2023 diz 92,5% dos domicílios; este pipeline calcula 92,6%, e o corte

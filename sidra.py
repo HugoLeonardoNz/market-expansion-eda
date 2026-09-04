@@ -97,6 +97,26 @@ FONTES = {
 }
 
 
+# ── População ────────────────────────────────────────────────────────────────
+# Fica FORA de FONTES porque tem outra forma: não é PNAD, não tem classificação
+# de situação do domicílio e o período é um só.
+#
+# Por que o CENSO 2022 e não a estimativa: a tabela de estimativa (6579) pula
+# justamente 2022 e 2023 — depois do Censo, o IBGE parou de projetar os anos já
+# recenseados e só retomou em 2024. E a constante que este projeto usava, de
+# "população estimada 2023", vinha das projeções ANTERIORES ao Censo, que o
+# Censo mostrou serem altas: 4,7% acima no total do país, e com erro que varia
+# por estado — 13,3% no Amapá, 8,1% no Rio, contra menos de 1% em outros.
+#
+# Erro que varia por estado é o que estraga ranking, e ranking de estado é a
+# única coisa que este projeto entrega. Mesmo motivo pelo qual a penetração de
+# internet deixou de ser constante escrita à mão.
+POPULACAO = dict(
+    agregado=4709, variavel=93, ano=2022,
+    descricao="População residente — Censo Demográfico 2022",
+)
+
+
 class SidraIndisponivel(RuntimeError):
     """A API não respondeu e não há cache. Falha alta de propósito.
 
@@ -228,6 +248,34 @@ def baixar(forcar: bool = False) -> dict:
         cache.write_text(json.dumps(dados, ensure_ascii=False), encoding="utf-8")
         bruto[nome] = dados
     return bruto
+
+
+def populacao(forcar: bool = False) -> dict[str, int]:
+    """{codigo_ibge_da_UF: pessoas} — Censo Demográfico 2022, observado.
+
+    Mesmo cache versionado das outras fontes, e mesma política de falha: se a
+    API não responde e não há cache, levanta em vez de devolver número inventado.
+    """
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    cache = CACHE_DIR / "populacao_censo_2022.json"
+    if cache.exists() and not forcar:
+        dados = json.loads(cache.read_text(encoding="utf-8"))
+    else:
+        url = (f"{BASE}/{POPULACAO['agregado']}/periodos/{POPULACAO['ano']}"
+               f"/variaveis/{POPULACAO['variavel']}?localidades=N3[all]")
+        dados = _http_json(url)
+        cache.write_text(json.dumps(dados, ensure_ascii=False), encoding="utf-8")
+
+    ano = str(POPULACAO["ano"])
+    fora = {}
+    for s in dados[0]["resultados"][0]["series"]:
+        try:
+            fora[s["localidade"]["id"]] = int(s["serie"][ano])
+        except (KeyError, TypeError, ValueError):
+            pass
+    if len(fora) != 27:
+        raise SidraIndisponivel(f"esperava 27 UFs no Censo 2022, vieram {len(fora)}")
+    return fora
 
 
 def carregar(forcar: bool = False) -> list[dict]:
